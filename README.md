@@ -18,3 +18,6 @@ Powered by OpenWeather API, this app delivers a clean and hassle-free weather ex
 
 ## Preview
 ![preview](https://github.com/Adarshakarki/Weather/blob/ffe4b97ccf438fe214d7f24cbc06612d6142a01e/Screenshot%202025-02-25%20123139.png)
+
+## Try It Out
+https://adarshakarki.github.io/Weather/
