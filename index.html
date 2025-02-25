@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Pastel Weather</h1>
+        </header>
+        
+        <div class="search-box">
+            <input type="text" id="city" placeholder="Enter City">
+            <button id="check"><i class="fas fa-search"></i> Search</button>
+        </div>
+
+        <div class="weather-main">
+            <img src="clouds.png" alt="Weather Icon" id="tempIcon">
+            <h2 id="weatherCountry">City Name</h2>
+            <h3 id="temperature">0°<strong>C</strong></h3>
+            <p id="weatherDescription">Weather Description</p>
+        </div>
+
+        <div class="weather-details">
+            <div class="box">
+                <i class="fas fa-thermometer-half"></i>
+                <p id="feelsLike">Feels Like: 0°C</p>
+            </div>
+            <div class="box">
+                <i class="fas fa-tint"></i>
+                <p id="humidity">Humidity: 0%</p>
+            </div>
+            <div class="box">
+                <i class="fas fa-map-marker-alt"></i>
+                <p id="longitude">Longitude: 0</p>
+            </div>
+            <div class="box">
+                <i class="fas fa-map-marker-alt"></i>
+                <p id="latitude">Latitude: 0</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
