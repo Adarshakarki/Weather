@@ -1,50 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather App</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Weather Forecast</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Pastel Weather</h1>
-        </header>
-        
-        <div class="search-box">
-            <input type="text" id="city" placeholder="Enter City">
-            <button id="check"><i class="fas fa-search"></i> Search</button>
-        </div>
+<body class="wx-clouds">
 
-        <div class="weather-main">
-            <img src="clouds.png" alt="Weather Icon" id="tempIcon">
-            <h2 id="weatherCountry">City Name</h2>
-            <h3 id="temperature">0°<strong>C</strong></h3>
-            <p id="weatherDescription">Weather Description</p>
-        </div>
+  <!-- Sky layers -->
+  <div class="sky">
+    <div class="sky-top"></div>
+    <div class="sky-light"></div>
+    <div class="sun-glow"></div>
+  </div>
 
-        <div class="weather-details">
-            <div class="box">
-                <i class="fas fa-thermometer-half"></i>
-                <p id="feelsLike">Feels Like: 0°C</p>
-            </div>
-            <div class="box">
-                <i class="fas fa-tint"></i>
-                <p id="humidity">Humidity: 0%</p>
-            </div>
-            <div class="box">
-                <i class="fas fa-map-marker-alt"></i>
-                <p id="longitude">Longitude: 0</p>
-            </div>
-            <div class="box">
-                <i class="fas fa-map-marker-alt"></i>
-                <p id="latitude">Latitude: 0</p>
-            </div>
+  <!-- Weather effects -->
+  <canvas id="fx-canvas"></canvas>
+  <div class="fog-layer"></div>
+  <div class="lightning-flash" id="lightning"></div>
+
+  <div class="dashboard">
+
+    <!-- NAV -->
+    <nav class="nav">
+      <div class="nav-left">
+        <div class="nav-logo">
+          <div class="logo-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <span>Weather Forecast</span>
         </div>
+        <div class="nav-links">
+          <a class="nav-link active">Home</a>
+          <a class="nav-link">Application</a>
+        </div>
+      </div>
+
+      <div class="nav-center">
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span class="time-big" id="clock">--:--</span>
+          <span class="time-label">Time</span>
+        </div>
+        <div class="nav-toggles">
+          <button class="tog-btn active" id="tog-day">☀</button>
+          <button class="tog-btn" id="tog-night">☽</button>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <div class="nav-date" id="nav-date"></div>
+        <div class="nav-search">
+          <input id="search-input" type="text" placeholder="Search city..." autocomplete="off"/>
+          <button id="search-btn">→</button>
+        </div>
+        <button class="unit-tog" id="unit-tog">°C</button>
+      </div>
+
+      <!-- Mobile only -->
+      <button class="mob-menu-btn" id="mob-menu-btn">☰</button>
+    </nav>
+
+    <!-- MAIN GRID -->
+    <div class="main">
+
+      <!-- LEFT -->
+      <div class="left-panel">
+        <div class="condition-label" id="condition-label">Loading</div>
+        <div class="condition-sub" id="condition-sub">Fetching data</div>
+        <p class="condition-desc" id="condition-desc">Searching for current atmospheric conditions.</p>
+        <div class="cities-row" id="cities-row"></div>
+      </div>
+
+      <!-- CLOUD -->
+      <div class="cloud-stage">
+        <div class="cloud-wrap" id="cloud-wrap">
+          <div class="cloud-main">
+            <div class="cloud-puff p1"></div>
+            <div class="cloud-puff p2"></div>
+            <div class="cloud-puff p3"></div>
+            <div class="cloud-puff p4"></div>
+            <div class="cloud-puff p5"></div>
+            <div class="cloud-base"></div>
+          </div>
+          <div class="cloud-shadow"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-panel">
+        <div class="chat-btn">···</div>
+        <div class="temp-block">
+          <span class="main-temp" id="main-temp">—</span>
+          <span class="temp-sup" id="temp-sup">°</span>
+        </div>
+        <div class="quality-row">
+          <div class="quality-badge" id="quality-badge">—</div>
+          <div class="quality-coords" id="quality-coords">—</div>
+        </div>
+        <div class="wind-uv">
+          <div class="wu-line">WIND: <strong id="r-wind">—</strong></div>
+          <div class="wu-line">HUMIDITY: <strong id="r-hum-line">—</strong></div>
+          <div class="wu-line">PRESSURE: <strong id="r-pressure">—</strong></div>
+          <div class="wu-city" id="r-city">—</div>
+        </div>
+        <div class="hum-row">
+          <span class="hum-icon">💧</span>
+          <span class="hum-val" id="r-hum">—</span>
+          <div class="hum-dots">
+            <span class="hd hd-1"></span>
+            <span class="hd hd-2"></span>
+            <span class="hd hd-3"></span>
+            <span class="hd hd-4"></span>
+          </div>
+        </div>
+        <div class="city-list" id="city-list"></div>
+      </div>
+
     </div>
 
-    <script src="script.js"></script>
+    <!-- WAVE -->
+    <div class="wave-section">
+      <canvas id="wave-canvas"></canvas>
+    </div>
+
+  </div>
+
+  <!-- MOBILE BOTTOM SHEET -->
+  <div class="mob-sheet" id="mob-sheet">
+    <div class="mob-sheet-handle" id="mob-handle"></div>
+
+    <!-- Mobile search -->
+    <div class="nav-search" style="width:100%;border-radius:20px;margin-bottom:1rem">
+      <input id="mob-search-input" type="text" placeholder="Search city..." autocomplete="off" style="width:100%"/>
+      <button id="mob-search-btn">→</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="mob-stats-grid" id="mob-stats-grid">
+      <div class="mob-stat">
+        <div class="mob-stat-label">Wind</div>
+        <div class="mob-stat-val" id="ms-wind">—</div>
+      </div>
+      <div class="mob-stat">
+        <div class="mob-stat-label">Humidity</div>
+        <div class="mob-stat-val" id="ms-hum">—</div>
+      </div>
+      <div class="mob-stat">
+        <div class="mob-stat-label">Pressure</div>
+        <div class="mob-stat-val" id="ms-pres">—</div>
+      </div>
+      <div class="mob-stat">
+        <div class="mob-stat-label">Visibility</div>
+        <div class="mob-stat-val" id="ms-vis">—</div>
+      </div>
+    </div>
+
+    <!-- Unit + night toggles -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
+      <button class="unit-tog" id="mob-unit-tog" style="flex:1;padding:0.5em">°C</button>
+      <button class="tog-btn active" id="mob-tog-day" style="flex:1;padding:0.5em;background:rgba(255,255,255,0.18)">☀ Day</button>
+      <button class="tog-btn" id="mob-tog-night" style="flex:1;padding:0.5em">☽ Night</button>
+    </div>
+
+    <!-- Nearby cities -->
+    <div class="mob-cities" id="mob-cities"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
