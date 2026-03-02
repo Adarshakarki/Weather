@@ -3,173 +3,186 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Weather Forecast</title>
+  <title>Stratum</title>
+  <meta name="description" content="Stratum — immersive weather, beautifully layered"/>
+  <link rel="icon" type="image/x-icon" href="favicon.svg"/>
   <link rel="stylesheet" href="styles.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@200;300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
-<body class="wx-clouds">
+<body>
 
-  <!-- Sky layers -->
-  <div class="sky">
-    <div class="sky-top"></div>
-    <div class="sky-light"></div>
-    <div class="sun-glow"></div>
+  <!-- Full-bleed crossfading photo backgrounds -->
+  <div class="bg-stage">
+    <div class="bg-photo" id="bg-a"></div>
+    <div class="bg-photo" id="bg-b"></div>
+    <div class="bg-scrim"></div>
+    <div class="bg-grain"></div>
   </div>
 
-  <!-- Weather effects -->
-  <canvas id="fx-canvas"></canvas>
-  <div class="fog-layer"></div>
-  <div class="lightning-flash" id="lightning"></div>
+  <!-- Canvas: rain / snow / mist / stars / dust -->
+  <canvas id="fx"></canvas>
+  <!-- Lightning overlay -->
+  <div class="lightning" id="lightning"></div>
 
-  <div class="dashboard">
+  <div class="app">
 
     <!-- NAV -->
-    <nav class="nav">
-      <div class="nav-left">
-        <div class="nav-logo">
-          <div class="logo-icon">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
-          <span>Weather Forecast</span>
-        </div>
-        <div class="nav-links">
-          <a class="nav-link active">Home</a>
-          <a class="nav-link">Application</a>
-        </div>
+    <header class="nav">
+      <div class="nav-brand">
+        <span>Stratum</span>
       </div>
 
-      <div class="nav-center">
-        <div style="display:flex;align-items:baseline;gap:0.4rem">
-          <span class="time-big" id="clock">--:--</span>
-          <span class="time-label">Time</span>
+      <div class="nav-search-wrap">
+        <div class="nav-search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="search-input" type="text" placeholder="Search city…" autocomplete="off" spellcheck="false"/>
+          <button id="search-btn" aria-label="Search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
         </div>
-        <div class="nav-toggles">
-          <button class="tog-btn active" id="tog-day">☀</button>
-          <button class="tog-btn" id="tog-night">☽</button>
-        </div>
+        <button class="nav-locate" id="nav-locate" title="Use my location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        </button>
       </div>
 
       <div class="nav-right">
-        <div class="nav-date" id="nav-date"></div>
-        <div class="nav-search">
-          <input id="search-input" type="text" placeholder="Search city..." autocomplete="off"/>
-          <button id="search-btn">→</button>
+        <div class="nav-clock">
+          <span id="clock"></span>
+          <span id="ampm" class="ampm"></span>
         </div>
-        <button class="unit-tog" id="unit-tog">°C</button>
+        <button class="unit-btn" id="unit-btn">°C</button>
+        <button class="mob-open-btn" id="mob-open-btn" aria-label="Open details">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
+    </header>
 
-      <!-- Mobile only -->
-      <button class="mob-menu-btn" id="mob-menu-btn">☰</button>
-    </nav>
+    <!-- MAIN -->
+    <main class="main">
 
-    <!-- MAIN GRID -->
-    <div class="main">
-
-      <!-- LEFT -->
-      <div class="left-panel">
-        <div class="condition-label" id="condition-label">Loading</div>
-        <div class="condition-sub" id="condition-sub">Fetching data</div>
-        <p class="condition-desc" id="condition-desc">Searching for current atmospheric conditions.</p>
-        <div class="cities-row" id="cities-row"></div>
-      </div>
-
-      <!-- CLOUD -->
-      <div class="cloud-stage">
-        <div class="cloud-wrap" id="cloud-wrap">
-          <div class="cloud-main">
-            <div class="cloud-puff p1"></div>
-            <div class="cloud-puff p2"></div>
-            <div class="cloud-puff p3"></div>
-            <div class="cloud-puff p4"></div>
-            <div class="cloud-puff p5"></div>
-            <div class="cloud-base"></div>
-          </div>
-          <div class="cloud-shadow"></div>
+      <!-- LEFT: hero -->
+      <section class="hero">
+        <div class="hero-location">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="h-city">—</span>
+          <span class="h-country" id="h-country"></span>
         </div>
-      </div>
 
-      <!-- RIGHT -->
-      <div class="right-panel">
-        <div class="chat-btn">···</div>
-        <div class="temp-block">
-          <span class="main-temp" id="main-temp">—</span>
-          <span class="temp-sup" id="temp-sup">°</span>
-        </div>
-        <div class="quality-row">
-          <div class="quality-badge" id="quality-badge">—</div>
-          <div class="quality-coords" id="quality-coords">—</div>
-        </div>
-        <div class="wind-uv">
-          <div class="wu-line">WIND: <strong id="r-wind">—</strong></div>
-          <div class="wu-line">HUMIDITY: <strong id="r-hum-line">—</strong></div>
-          <div class="wu-line">PRESSURE: <strong id="r-pressure">—</strong></div>
-          <div class="wu-city" id="r-city">—</div>
-        </div>
-        <div class="hum-row">
-          <span class="hum-icon">💧</span>
-          <span class="hum-val" id="r-hum">—</span>
-          <div class="hum-dots">
-            <span class="hd hd-1"></span>
-            <span class="hd hd-2"></span>
-            <span class="hd hd-3"></span>
-            <span class="hd hd-4"></span>
+        <div class="hero-temp-row">
+          <div class="hero-icon" id="hero-icon"></div>
+          <div class="hero-temp-block">
+            <div class="hero-temp"><span id="h-temp">—</span><span class="hero-deg">°</span></div>
+            <div class="hero-unit" id="h-unit">C</div>
           </div>
         </div>
-        <div class="city-list" id="city-list"></div>
-      </div>
 
-    </div>
+        <div class="hero-condition" id="h-condition">—</div>
+        <div class="hero-desc" id="h-desc"></div>
 
-    <!-- WAVE -->
-    <div class="wave-section">
-      <canvas id="wave-canvas"></canvas>
-    </div>
+        <div class="hero-minmax">
+          <span class="mm-item"><span class="mm-label">↑</span> <span id="h-max">—</span></span>
+          <span class="mm-sep">·</span>
+          <span class="mm-item"><span class="mm-label">↓</span> <span id="h-min">—</span></span>
+          <span class="mm-sep">·</span>
+          <span class="mm-item">Feels <span id="h-feels">—</span></span>
+        </div>
 
-  </div>
+        <!-- Hourly -->
+        <div class="hourly-section">
+          <div class="section-label">HOURLY</div>
+          <div class="hourly-scroll" id="hourly-scroll"></div>
+        </div>
+      </section>
 
-  <!-- MOBILE BOTTOM SHEET -->
+      <!-- RIGHT: sidebar -->
+      <aside class="sidebar">
+
+        <!-- Map -->
+        <div class="glass-card map-card">
+          <div class="card-label">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            LOCATION
+          </div>
+          <div id="map"></div>
+          <div class="map-coords" id="map-coords">—</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="glass-card stats-card">
+          <div class="card-label">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            CONDITIONS
+          </div>
+          <div class="stats-grid">
+            <div class="stat"><div class="stat-label">Humidity</div><div class="stat-val" id="s-hum">—</div></div>
+            <div class="stat"><div class="stat-label">Wind</div><div class="stat-val" id="s-wind">—</div></div>
+            <div class="stat"><div class="stat-label">Gusts</div><div class="stat-val" id="s-gust">—</div></div>
+            <div class="stat"><div class="stat-label">Direction</div><div class="stat-val" id="s-wdir">—</div></div>
+            <div class="stat"><div class="stat-label">Pressure</div><div class="stat-val" id="s-pres">—</div></div>
+            <div class="stat"><div class="stat-label">Visibility</div><div class="stat-val" id="s-vis">—</div></div>
+            <div class="stat"><div class="stat-label">Cloud Cover</div><div class="stat-val" id="s-cloud">—</div></div>
+            <div class="stat"><div class="stat-label">Dew Point</div><div class="stat-val" id="s-dew">—</div></div>
+            <div class="stat"><div class="stat-label">Sunrise</div><div class="stat-val" id="s-rise">—</div></div>
+            <div class="stat"><div class="stat-label">Sunset</div><div class="stat-val" id="s-set">—</div></div>
+          </div>
+        </div>
+
+        <!-- 5-day forecast -->
+        <div class="glass-card forecast-card">
+          <div class="card-label">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            5-DAY FORECAST
+          </div>
+          <div class="forecast-rows" id="forecast-rows"></div>
+        </div>
+
+      </aside>
+    </main>
+
+  </div><!-- /.app -->
+
+  <!-- Backdrop to close mobile sheet by tapping outside -->
+  <div class="mob-backdrop" id="mob-backdrop"></div>
+
+  <!-- Mobile bottom sheet -->
   <div class="mob-sheet" id="mob-sheet">
-    <div class="mob-sheet-handle" id="mob-handle"></div>
+    <div class="mob-handle" id="mob-handle"></div>
 
-    <!-- Mobile search -->
-    <div class="nav-search" style="width:100%;border-radius:20px;margin-bottom:1rem">
-      <input id="mob-search-input" type="text" placeholder="Search city..." autocomplete="off" style="width:100%"/>
-      <button id="mob-search-btn">→</button>
+    <div class="mob-search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="mob-search" type="text" placeholder="Search city…" autocomplete="off"/>
+      <button id="mob-search-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
     </div>
 
-    <!-- Stats -->
-    <div class="mob-stats-grid" id="mob-stats-grid">
-      <div class="mob-stat">
-        <div class="mob-stat-label">Wind</div>
-        <div class="mob-stat-val" id="ms-wind">—</div>
-      </div>
-      <div class="mob-stat">
-        <div class="mob-stat-label">Humidity</div>
-        <div class="mob-stat-val" id="ms-hum">—</div>
-      </div>
-      <div class="mob-stat">
-        <div class="mob-stat-label">Pressure</div>
-        <div class="mob-stat-val" id="ms-pres">—</div>
-      </div>
-      <div class="mob-stat">
-        <div class="mob-stat-label">Visibility</div>
-        <div class="mob-stat-val" id="ms-vis">—</div>
-      </div>
+    <div class="mob-top-row">
+      <button class="unit-btn" id="mob-unit-btn">°C</button>
+      <button class="mob-locate" id="mob-locate">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        Use my location
+      </button>
     </div>
 
-    <!-- Unit + night toggles -->
-    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
-      <button class="unit-tog" id="mob-unit-tog" style="flex:1;padding:0.5em">°C</button>
-      <button class="tog-btn active" id="mob-tog-day" style="flex:1;padding:0.5em;background:rgba(255,255,255,0.18)">☀ Day</button>
-      <button class="tog-btn" id="mob-tog-night" style="flex:1;padding:0.5em">☽ Night</button>
+    <div class="mob-stats">
+      <div class="mob-stat"><div class="ms-l">Humidity</div><div class="ms-v" id="mob-hum">—</div></div>
+      <div class="mob-stat"><div class="ms-l">Wind</div><div class="ms-v" id="mob-wind">—</div></div>
+      <div class="mob-stat"><div class="ms-l">Pressure</div><div class="ms-v" id="mob-pres">—</div></div>
+      <div class="mob-stat"><div class="ms-l">Visibility</div><div class="ms-v" id="mob-vis">—</div></div>
+      <div class="mob-stat"><div class="ms-l">Cloud</div><div class="ms-v" id="mob-cloud">—</div></div>
+      <div class="mob-stat"><div class="ms-l">Dew Point</div><div class="ms-v" id="mob-dew">—</div></div>
+      <div class="mob-stat"><div class="ms-l">Sunrise</div><div class="ms-v" id="mob-rise">—</div></div>
+      <div class="mob-stat"><div class="ms-l">Sunset</div><div class="ms-v" id="mob-set">—</div></div>
     </div>
 
-    <!-- Nearby cities -->
-    <div class="mob-cities" id="mob-cities"></div>
+    <div class="mob-forecast-label">5-DAY FORECAST</div>
+    <div class="mob-forecast-list" id="mob-forecast"></div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
